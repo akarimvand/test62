@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,31 +32,33 @@
             width: auto;
         }
 
-        /* Dark mode theme (Android-like) */
-        body.dark-theme {
-            background-color: #121212 !important;
-            color: #FAFAFA !important;
+        /* Facebook-like theme */
+        body.facebook-theme {
+            background-color: #f0f2f5 !important;
+            color: #050505 !important;
         }
 
-        body.dark-theme .form-control,
-        body.dark-theme .form-select {
-            background-color: #373737 !important;
-            color: #FAFAFA !important;
-            border-color: #555 !important;
+        body.facebook-theme .form-control,
+        body.facebook-theme .form-select {
+            background-color: #fff !important;
+            color: #050505 !important;
+            border-color: #ddd !important;
         }
 
-        body.dark-theme .table {
-            color: #FAFAFA !important;
+        body.facebook-theme .table {
+            color: #050505 !important;
         }
 
-        body.dark-theme .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(255, 255, 255, .05) !important;
+        body.facebook-theme .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #FFB300 !important;
         }
 
         /* ACC Row Styling (light green with blinking effect) */
         .acc-row {
-            background-color: #c8e6c9 !important; /* Light green */
-            color: #1b5e20 !important; /* Darker green for text */
+            background-color: #c8e6c9 !important;
+            /* Light green */
+            color: #1b5e20 !important;
+            /* Darker green for text */
         }
 
         .blinking {
@@ -67,14 +70,64 @@
                 opacity: 0;
             }
         }
+
+        /* Simple fade-in animation for datagrid updates */
+        .data-grid {
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .data-grid.fade-out {
+            opacity: 0.2;
+        }
+
+        @media print {
+            /* مخفی کردن دکمه‌ها در حالت چاپ */
+            #printButton {
+                display: none !important;
+            }
+
+            /* استایل‌های جدول برای حالت چاپ */
+            .data-grid {
+                overflow: visible !important;
+                width: 100% !important;
+            }
+
+            .data-grid .table {
+                width: 100% !important;
+                table-layout: fixed;
+            }
+
+            .data-grid .table td,
+            .data-grid .table th {
+                white-space: normal !important;
+                word-wrap: break-word;
+            }
+
+            /* فقط جدول با کلاس printable-table نمایش داده شود */
+            body *:not(.printable-table) {
+                display: none !important;
+            }
+
+            .printable-table {
+                display: block !important;
+            }
+
+            /* Landscape printing */
+            @page {
+                size: landscape;
+            }
+        }
     </style>
 </head>
 
-<body class="bg-light">
+<body class="facebook-theme">
     <div class="container form-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="text-center">نمایش اطلاعات جوشکاران</h1>
-            <button id="darkModeToggle" class="btn btn-outline-secondary">تغییر به حالت تیره</button>
+            <div>
+                <button id="printButton" class="btn btn-secondary">تهیه عکس گزارش</button>
+            </div>
         </div>
 
         <!-- Combobox -->
@@ -105,7 +158,7 @@
 
         <!-- DataGrid -->
         <div class="data-grid">
-            <table id="dataTable" class="table table-striped table-bordered">
+            <table id="dataTable" class="table table-striped table-bordered printable-table">
                 <thead>
                     <tr>
                         <th>موقعیت</th>
@@ -128,6 +181,9 @@
         </div>
     </div>
 
+    <!-- html2canvas script -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- DataTables JS -->
@@ -139,13 +195,6 @@
         $(document).ready(function () {
             // Initialize Select2
             $('#persianNameSelect').select2();
-
-            // Dark mode toggle
-            $("#darkModeToggle").click(function () {
-                $("body").toggleClass("dark-theme");
-                const isDarkTheme = $("body").hasClass("dark-theme");
-                $(this).text(isDarkTheme ? "تغییر به حالت روشن" : "تغییر به حالت تیره");
-            });
 
             // Fetch data
             const dataURL = "https://raw.githubusercontent.com/akarimvand/test62/refs/heads/main/db.txt";
@@ -198,28 +247,35 @@
 
                         // DataTable logic
                         const dataTable = $('#dataTable').DataTable();
-                        dataTable.clear();
 
-                        filteredRecords.forEach(record => {
-                            let rowNode = dataTable.row.add([
-                                record.Position || "",
-                                record.Welding_Process || "",
-                                record.Material || "",
-                                record.Thk || "",
-                                record.WQT_Rep || "",
-                                record.WQT_Date || "",
-                                record.NDT_REP_No || "",
-                                record.NDT_REP_DATE || "",
-                                record.NDT_RESULT || "",
-                                record.Final_Result || "",
-                                record.Welder_Stamp || ""
-                            ]).draw(false).node();
+                        // Fade out animation
+                        $(".data-grid").addClass("fade-out");
+                        setTimeout(() => {
+                            dataTable.clear();
 
-                            // Add class for blinking effect
-                            if (record.Final_Result === "acc") {
-                                $(rowNode).addClass('acc-row blinking');
-                            }
-                        });
+                            filteredRecords.forEach(record => {
+                                let rowNode = dataTable.row.add([
+                                    record.Position || "",
+                                    record.Welding_Process || "",
+                                    record.Material || "",
+                                    record.Thk || "",
+                                    record.WQT_Rep || "",
+                                    record.WQT_Date || "",
+                                    record.NDT_REP_No || "",
+                                    record.NDT_REP_DATE || "",
+                                    record.NDT_RESULT || "",
+                                    record.Final_Result || "",
+                                    record.Welder_Stamp || ""
+                                ]).draw(false).node();
+
+                                // Add class for blinking effect
+                                if (record.Final_Result === "acc") {
+                                    $(rowNode).addClass('acc-row blinking');
+                                }
+                            });
+
+                            $(".data-grid").removeClass("fade-out");
+                        }, 500); // Wait for fade-out to complete
                     } else {
                         $("#welderStamp").val("");
                         $("#nationalCode").val("");
@@ -232,11 +288,33 @@
                 alert("فایل متنی بارگیری نشد.");
             });
 
-            // DataTable initialization (outside the data loading for persistence)
+            // DataTable initialization
             $('#dataTable').DataTable({
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/fa.json"
                 }
+            });
+
+            // Print Button Click Event
+            $("#printButton").click(function () {
+                const element = document.querySelector(".data-grid"); // انتخاب عنصر دیتا گرید
+
+                html2canvas(element, { // گرفتن عکس از عنصر انتخاب شده
+                    useCORS: true,
+                    scale: 2,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: element.scrollWidth,  // تنظیم عرض پنجره
+                    windowHeight: element.scrollHeight // تنظیم ارتفاع پنجره
+                }).then(canvas => {
+                    let imgData = canvas.toDataURL('image/jpeg', 0.8);
+                    let link = document.createElement('a');
+                    link.href = imgData;
+                    link.download = 'datagrid_report.jpg';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
             });
         });
     </script>
