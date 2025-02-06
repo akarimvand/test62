@@ -19,11 +19,18 @@
         }
         .data-grid {
             margin-top: 20px;
+            overflow-x: auto; /* برای نمایش افقی جدول در موبایل */
         }
         /* Style for rows with Final_Result = "acc" */
         .acc-row {
             background-color: #d4edda !important; /* Light green */
             color: #155724 !important; /* Dark green text */
+            animation: blink 1s infinite; /* چشمک زن */
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
