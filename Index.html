@@ -121,6 +121,19 @@
                 persianNameSelect.append(`<option value="${combination}">${combination}</option>`);
             });
 
+            // Initialize DataTable
+            const dataTable = $('#dataTable').DataTable({
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/fa.json"
+                },
+                createdRow: function (row, data, dataIndex) {
+                    // Apply custom class to rows with Final_Result = "acc"
+                    if (data[9] === "acc") { // Column index for Final_Result is 9
+                        $(row).addClass('acc-row');
+                    }
+                }
+            });
+
             // Handle Combobox selection
             persianNameSelect.on("change", function () {
                 const selectedCombination = $(this).val();
@@ -135,53 +148,40 @@
                     $("#nationalCode").val(selectedRecord.National_Code);
                     $("#persianName").val(selectedRecord.Persian_Name);
 
-                    // Populate DataGrid based on Welder_Stamp
-                    const dataTableBody = $("#dataTable tbody");
-                    dataTableBody.empty();
-
+                    // Filter records based on selected combination
                     const filteredRecords = records.filter(record => 
                         record.Persian_Name === selectedName && record.Welder_Stamp === selectedStamp
                     );
 
+                    // Clear existing data in DataTable
+                    dataTable.clear();
+
+                    // Add new data to DataTable
                     filteredRecords.forEach(record => {
-                        const rowClass = record.Final_Result === "acc" ? "acc-row" : "";
-                        const row = `
-                            <tr class="${rowClass}">
-                                <td>${record.Position || ""}</td>
-                                <td>${record.Welding_Process || ""}</td>
-                                <td>${record.Material || ""}</td>
-                                <td>${record.Thk || ""}</td>
-                                <td>${record.WQT_Rep || ""}</td>
-                                <td>${record.WQT_Date || ""}</td>
-                                <td>${record.NDT_REP_No || ""}</td>
-                                <td>${record.NDT_REP_DATE || ""}</td>
-                                <td>${record.NDT_RESULT || ""}</td>
-                                <td>${record.Final_Result || ""}</td>
-                                <td>${record.Welder_Stamp || ""}</td> <!-- Added Welder Stamp -->
-                            </tr>
-                        `;
-                        dataTableBody.append(row);
+                        const row = [
+                            record.Position || "",
+                            record.Welding_Process || "",
+                            record.Material || "",
+                            record.Thk || "",
+                            record.WQT_Rep || "",
+                            record.WQT_Date || "",
+                            record.NDT_REP_No || "",
+                            record.NDT_REP_DATE || "",
+                            record.NDT_RESULT || "",
+                            record.Final_Result || "",
+                            record.Welder_Stamp || ""
+                        ];
+                        dataTable.row.add(row);
                     });
 
-                    // Initialize DataTable
-                    $('#dataTable').DataTable().destroy();
-                    $('#dataTable').DataTable({
-                        language: {
-                            url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/fa.json"
-                        },
-                        createdRow: function (row, data, dataIndex) {
-                            // Apply custom class to rows with Final_Result = "acc"
-                            if (data[9] === "acc") { // Column index for Final_Result is 9
-                                $(row).addClass('acc-row');
-                            }
-                        }
-                    });
+                    // Redraw DataTable to reflect changes
+                    dataTable.draw();
                 } else {
                     // Clear fields and DataGrid
                     $("#welderStamp").val("");
                     $("#nationalCode").val("");
                     $("#persianName").val("");
-                    $("#dataTable tbody").empty();
+                    dataTable.clear().draw();
                 }
             });
         }).fail(function () {
